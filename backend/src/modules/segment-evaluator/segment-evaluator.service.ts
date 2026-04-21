@@ -35,7 +35,21 @@ type CustomerWithTransactions = {
 export class SegmentEvaluatorService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async recomputeSegment(segmentId: string, triggerTypeRaw: string) {
+  async recomputeSegment(
+      segmentId: string,
+      triggerTypeRaw: string,
+      visited = new Set<string>(),
+    ) {
+    if (visited.has(segmentId)) {
+      return {
+        skipped: true,
+        reason: 'Already processed in cascade',
+        segmentId,
+      };
+    }
+
+    visited.add(segmentId);
+
     const segment = await this.prisma.segment.findUnique({
       where: { id: segmentId },
     });
@@ -52,6 +66,7 @@ export class SegmentEvaluatorService {
     });
 
     const oldCustomerIds = oldMemberships.map((m) => m.customerId);
+
     const newCustomerIds = await this.evaluateSegmentMembers(segment.id);
 
     const oldSet = new Set(oldCustomerIds);
@@ -116,6 +131,39 @@ export class SegmentEvaluatorService {
       });
     });
 
+    const hasChanges = added.length > 0 || removed.length > 0;
+
+    const cascadedSegments: Array<{
+      segmentId: string;
+      segmentName: string;
+      result: any;
+    }> = [];
+
+    if (hasChanges) {
+      const dependents = await this.prisma.segmentDependency.findMany({
+        where: {
+          dependsOnSegmentId: segmentId,
+        },
+        include: {
+          segment: true,
+        },
+      });
+
+      for (const dep of dependents) {
+        const cascadeResult = await this.recomputeSegment(
+          dep.segment.id,
+          EvaluationTriggerType.DEPENDENCY_CHANGE,
+          visited,
+        );
+
+        cascadedSegments.push({
+          segmentId: dep.segment.id,
+          segmentName: dep.segment.name,
+          result: cascadeResult,
+        });
+      }
+    }
+
     return {
       segmentId: segment.id,
       segmentName: segment.name,
@@ -128,6 +176,8 @@ export class SegmentEvaluatorService {
       removedCount: removed.length,
       added,
       removed,
+      hasChanges,
+      cascadedSegments,
     };
   }
 
