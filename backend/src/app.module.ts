@@ -6,6 +6,8 @@ import { SegmentsModule } from './modules/segments/segments.module';
 import { SegmentEvaluatorModule } from './modules/segment-evaluator/segment-evaluator.module';
 import { SimulationModule } from './modules/simulation/simulation.module';
 import { MessagingModule } from './messaging/messaging.module';
+import { RedisModule } from './redis/redis.module';
+import { ChangeAggregationModule } from './modules/change-aggregation/change-aggregation.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { MessagingModule } from './messaging/messaging.module';
     SegmentEvaluatorModule,
     SimulationModule,
     MessagingModule,
+    RedisModule,
+    ChangeAggregationModule,
   ],
 })
 export class AppModule {}

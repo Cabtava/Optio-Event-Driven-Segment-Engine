@@ -3,10 +3,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AddTransactionDto } from './dto/add-transaction.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AdvanceTimeDto } from './dto/advance-time.dto';
+import { ChangeAggregationService } from '../change-aggregation/change-aggregation.service';
 
 @Injectable()
 export class SimulationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly changeAggregationService: ChangeAggregationService,
+  ) {}
 
   async getCurrentTime() {
     const state = await this.ensureSimulationState();
@@ -22,7 +26,9 @@ export class SimulationService {
     });
 
     if (!customer) {
-      throw new NotFoundException(`Customer with id ${dto.customerId} not found`);
+      throw new NotFoundException(
+        `Customer with id ${dto.customerId} not found`,
+      );
     }
 
     const simulationState = await this.ensureSimulationState();
@@ -39,9 +45,29 @@ export class SimulationService {
       },
     });
 
+    const impactedSegments = await this.prisma.segment.findMany({
+      where: {
+        type: 'DYNAMIC',
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    for (const segment of impactedSegments) {
+      await this.changeAggregationService.registerSegmentImpact({
+        segmentId: segment.id,
+        triggerType: 'TRANSACTION',
+        customerIds: [dto.customerId],
+      });
+    }
+
     return {
       message: 'Transaction added successfully',
       transaction,
+      impactedSegments: impactedSegments.map((segment) => segment.name),
+      debounced: true,
     };
   }
 
@@ -51,7 +77,9 @@ export class SimulationService {
     });
 
     if (!customer) {
-      throw new NotFoundException(`Customer with id ${dto.customerId} not found`);
+      throw new NotFoundException(
+        `Customer with id ${dto.customerId} not found`,
+      );
     }
 
     const updatedCustomer = await this.prisma.customer.update({
@@ -63,9 +91,29 @@ export class SimulationService {
       },
     });
 
+    const impactedSegments = await this.prisma.segment.findMany({
+      where: {
+        type: 'DYNAMIC',
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    for (const segment of impactedSegments) {
+      await this.changeAggregationService.registerSegmentImpact({
+        segmentId: segment.id,
+        triggerType: 'PROFILE_UPDATE',
+        customerIds: [dto.customerId],
+      });
+    }
+
     return {
       message: 'Customer profile updated successfully',
       customer: updatedCustomer,
+      impactedSegments: impactedSegments.map((segment) => segment.name),
+      debounced: true,
     };
   }
 
@@ -82,11 +130,30 @@ export class SimulationService {
       },
     });
 
+    const impactedSegments = await this.prisma.segment.findMany({
+      where: {
+        type: 'DYNAMIC',
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    for (const segment of impactedSegments) {
+      await this.changeAggregationService.registerSegmentImpact({
+        segmentId: segment.id,
+        triggerType: 'TIME_ADVANCE',
+      });
+    }
+
     return {
       message: 'Simulation time advanced successfully',
       previousTime: state.currentTime,
       currentTime: updated.currentTime,
       advancedByDays: dto.days,
+      impactedSegments: impactedSegments.map((segment) => segment.name),
+      debounced: true,
     };
   }
 
