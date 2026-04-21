@@ -156,6 +156,8 @@ export class SegmentEvaluatorService {
       return [];
     }
 
+    const effectiveNow = await this.getEffectiveNow();
+
     const customers = await this.prisma.customer.findMany({
       include: {
         transactions: {
@@ -172,6 +174,7 @@ export class SegmentEvaluatorService {
       const isMatch = await this.evaluateRuleGroup(
         rule,
         customer as CustomerWithTransactions,
+        effectiveNow,
       );
 
       if (isMatch) {
@@ -185,7 +188,8 @@ export class SegmentEvaluatorService {
   private async evaluateRuleGroup(
     rule: RuleGroup,
     customer: CustomerWithTransactions,
-  ): Promise<boolean> {
+    effectiveNow: Date,
+    ): Promise<boolean> {
     const results: boolean[] = [];
 
     for (const condition of rule.conditions) {
@@ -193,7 +197,11 @@ export class SegmentEvaluatorService {
         const result = await this.evaluateSegmentRef(condition, customer.id);
         results.push(result);
       } else {
-        const result = this.evaluateFieldCondition(condition, customer);
+        const result = this.evaluateFieldCondition(
+          condition,
+          customer,
+          effectiveNow,
+        );
         results.push(result);
       }
     }
@@ -243,12 +251,19 @@ export class SegmentEvaluatorService {
     return !!membership;
   }
 
+    private async getEffectiveNow(): Promise<Date> {
+    const state = await this.prisma.simulationState.findUnique({
+      where: { id: 'global' },
+    });
+
+    return state?.currentTime ?? new Date();
+  }
+
   private evaluateFieldCondition(
     condition: FieldRuleCondition,
     customer: CustomerWithTransactions,
-  ): boolean {
-    const now = new Date();
-
+    now: Date,
+    ): boolean {
     switch (condition.field) {
       case 'transactions_count_30d': {
         const count = customer.transactions.filter((tx) =>

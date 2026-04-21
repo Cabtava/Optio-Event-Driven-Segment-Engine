@@ -1,4 +1,9 @@
-import { PrismaClient, SegmentType, EvaluationTriggerType, DeltaChangeType } from '@prisma/client';
+import {
+  PrismaClient,
+  SegmentType,
+  EvaluationTriggerType,
+  DeltaChangeType,
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -10,25 +15,68 @@ async function main() {
   await prisma.transaction.deleteMany();
   await prisma.segment.deleteMany();
   await prisma.customer.deleteMany();
+  await prisma.simulationState.deleteMany();
 
   const now = new Date();
 
-  const customers = await prisma.customer.createMany({
+  await prisma.customer.createMany({
     data: [
-      { name: 'Giorgi M.', email: 'giorgi@example.com', city: 'Batumi', status: 'active' },
-      { name: 'Nino K.', email: 'nino@example.com', city: 'Tbilisi', status: 'active' },
-      { name: 'Lasha T.', email: 'lasha@example.com', city: 'Kutaisi', status: 'inactive' },
-      { name: 'Mariam D.', email: 'mariam@example.com', city: 'Batumi', status: 'active' },
-      { name: 'Ana G.', email: 'ana@example.com', city: 'Tbilisi', status: 'active' },
-      { name: 'Saba R.', email: 'saba@example.com', city: 'Zugdidi', status: 'inactive' },
-      { name: 'Dato P.', email: 'dato@example.com', city: 'Batumi', status: 'active' },
-      { name: 'Tako J.', email: 'tako@example.com', city: 'Kutaisi', status: 'active' },
+      {
+        name: 'Giorgi M.',
+        email: 'giorgi@example.com',
+        city: 'Batumi',
+        status: 'active',
+      },
+      {
+        name: 'Nino K.',
+        email: 'nino@example.com',
+        city: 'Tbilisi',
+        status: 'active',
+      },
+      {
+        name: 'Lasha T.',
+        email: 'lasha@example.com',
+        city: 'Kutaisi',
+        status: 'inactive',
+      },
+      {
+        name: 'Mariam D.',
+        email: 'mariam@example.com',
+        city: 'Batumi',
+        status: 'active',
+      },
+      {
+        name: 'Ana G.',
+        email: 'ana@example.com',
+        city: 'Tbilisi',
+        status: 'active',
+      },
+      {
+        name: 'Saba R.',
+        email: 'saba@example.com',
+        city: 'Zugdidi',
+        status: 'inactive',
+      },
+      {
+        name: 'Dato P.',
+        email: 'dato@example.com',
+        city: 'Batumi',
+        status: 'active',
+      },
+      {
+        name: 'Tako J.',
+        email: 'tako@example.com',
+        city: 'Kutaisi',
+        status: 'active',
+      },
     ],
   });
 
   const allCustomers = await prisma.customer.findMany();
 
-  const customerByEmail = Object.fromEntries(allCustomers.map((c) => [c.email, c]));
+  const customerByEmail = Object.fromEntries(
+    allCustomers.map((customer) => [customer.email, customer]),
+  );
 
   await prisma.transaction.createMany({
     data: [
@@ -300,6 +348,13 @@ async function main() {
       });
     }
   }
+
+  await prisma.simulationState.create({
+    data: {
+      id: 'global',
+      currentTime: now,
+    },
+  });
 
   console.log('Seed completed successfully');
 }

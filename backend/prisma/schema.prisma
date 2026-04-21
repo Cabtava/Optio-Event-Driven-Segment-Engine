@@ -128,3 +128,10 @@ model SegmentDeltaItem {
   @@index([deltaId])
   @@index([customerId])
 }
+
+model SimulationState {
+  id           String   @id
+  currentTime  DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
