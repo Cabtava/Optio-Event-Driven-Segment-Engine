@@ -4,15 +4,16 @@ import { SegmentEvaluatorController } from './segment-evaluator.controller';
 import { SegmentRecomputeConsumer } from '../../workers/segment-recompute.consumer';
 import { UiNotificationConsumer } from '../../workers/ui-notification.consumer';
 import { CampaignConsumer } from '../../workers/campaign.consumer';
+import { WebsocketModule } from '../../websocket/websocket.module';
 
 @Module({
-  providers: [
-    SegmentEvaluatorService,
+  imports: [WebsocketModule],
+  providers: [SegmentEvaluatorService],
+  controllers: [
+    SegmentEvaluatorController,
     SegmentRecomputeConsumer,
     UiNotificationConsumer,
     CampaignConsumer,
   ],
-  controllers: [SegmentEvaluatorController],
-  exports: [SegmentEvaluatorService],
 })
 export class SegmentEvaluatorModule {}

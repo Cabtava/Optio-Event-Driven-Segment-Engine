@@ -1,0 +1,99 @@
+<div class="activity-feed">
+  <div class="feed-header">
+    <div>
+      <h1>Live Segment Updates</h1>
+      <p>Real-time membership drift events from the backend</p>
+    </div>
+    <div class="feed-counter">
+      {{ updates.length }} event{{ updates.length === 1 ? '' : 's' }}
+    </div>
+  </div>
+
+  <div *ngIf="updates.length === 0" class="empty-state">
+    <div class="empty-icon">📡</div>
+    <div class="empty-title">No live updates yet</div>
+    <div class="empty-text">
+      Trigger a recompute or simulation event to see segment changes here.
+    </div>
+  </div>
+
+  <div *ngFor="let update of updates; let i = index" class="update-card">
+    <div class="card-top">
+      <div class="title-block">
+        <div class="segment-name">{{ update.segmentName }}</div>
+        <div class="meta-line">
+          <span class="trigger-badge">
+            {{ getTriggerLabel(update.triggerType) }}
+          </span>
+
+          <span class="status-badge no-changes" *ngIf="hasNoChanges(update)">
+            No Changes
+          </span>
+
+          <span class="timestamp">
+            {{ update.receivedAt | date: 'MMM d, y • HH:mm:ss' }}
+          </span>
+        </div>
+      </div>
+
+      <button class="toggle-btn" (click)="toggleExpanded(i)">
+        {{ update.expanded ? 'Hide details' : 'Show details' }}
+      </button>
+    </div>
+
+    <div class="version-row">
+      Version
+      <strong>{{ update.previousVersion }}</strong>
+      →
+      <strong>{{ update.nextVersion }}</strong>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card added">
+        <div class="stat-label">Added</div>
+        <div class="stat-value">+{{ update.addedCount }}</div>
+      </div>
+
+      <div class="stat-card removed">
+        <div class="stat-label">Removed</div>
+        <div class="stat-value">-{{ update.removedCount }}</div>
+      </div>
+
+      <div class="stat-card neutral">
+        <div class="stat-label">Old Count</div>
+        <div class="stat-value">{{ update.oldCount }}</div>
+      </div>
+
+      <div class="stat-card neutral">
+        <div class="stat-label">New Count</div>
+        <div class="stat-value">{{ update.newCount }}</div>
+      </div>
+    </div>
+
+    <div class="details-panel" *ngIf="update.expanded">
+      <div class="detail-section">
+        <h3>Added Customer IDs</h3>
+        <div *ngIf="update.added.length === 0" class="empty-list">
+          No added customers
+        </div>
+        <div *ngIf="update.added.length > 0" class="pill-list">
+          <span class="pill added-pill" *ngFor="let id of update.added">
+            {{ id }}
+          </span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Removed Customer IDs</h3>
+        <div *ngIf="update.removed.length === 0" class="empty-list">
+          No removed customers
+        </div>
+        <div *ngIf="update.removed.length > 0" class="pill-list">
+          <span class="pill removed-pill" *ngFor="let id of update.removed">
+            {{ id }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

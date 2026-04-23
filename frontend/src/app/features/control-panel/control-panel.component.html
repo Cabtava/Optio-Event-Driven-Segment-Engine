@@ -1,0 +1,92 @@
+<div class="control-panel">
+    <div class="panel-header">
+        <div>
+            <h2>Simulation Control Panel</h2>
+            <p>Trigger changes without using the browser console</p>
+        </div>
+
+        <div class="header-actions">
+            <button (click)="loadCustomers()" [disabled]="loadingCustomers">
+                Refresh Customers
+            </button>
+            <button (click)="loadSegments()" [disabled]="loadingSegments">
+                Refresh Segments
+            </button>
+        </div>
+    </div>
+
+    <div class="status success" *ngIf="message">
+        {{ message }}
+    </div>
+
+    <div class="status error" *ngIf="error">
+        {{ error }}
+    </div>
+
+    <div class="panel-grid">
+        <div class="card">
+            <h3>Add Transaction</h3>
+
+            <label>Customer</label>
+            <select [(ngModel)]="selectedCustomerId">
+                <option *ngFor="let customer of customers" [value]="customer.id">
+                    {{ getCustomerLabel(customer) }}
+                </option>
+            </select>
+
+            <label>Amount</label>
+            <input type="number" [(ngModel)]="amount" />
+
+            <button (click)="addTransaction()" [disabled]="actionLoading || !selectedCustomerId">
+                Add Transaction
+            </button>
+        </div>
+
+        <div class="card">
+            <h3>Manual Segment Recompute</h3>
+
+            <label>Segment</label>
+            <select [(ngModel)]="selectedSegmentId">
+                <option *ngFor="let segment of segments" [value]="segment.id">
+                    {{ getSegmentLabel(segment) }}
+                </option>
+            </select>
+
+            <button (click)="recomputeSelectedSegment()" [disabled]="actionLoading || !selectedSegmentId">
+                Queue Recompute
+            </button>
+        </div>
+
+        <div class="card">
+            <h3>Advance Simulation Time</h3>
+
+            <label>Days</label>
+            <input type="number" [(ngModel)]="daysToAdvance" />
+
+            <button (click)="advanceTime()" [disabled]="actionLoading">
+                Advance Time
+            </button>
+        </div>
+
+        <div class="card">
+            <h3>Update Customer Profile</h3>
+
+            <label>Customer</label>
+            <select [(ngModel)]="selectedCustomerId">
+                <option *ngFor="let customer of customers" [value]="customer.id">
+                    {{ getCustomerLabel(customer) }}
+                </option>
+            </select>
+
+            <label>City</label>
+            <input type="text" [(ngModel)]="city" placeholder="Batumi" />
+
+            <label>Status</label>
+            <input type="text" [(ngModel)]="status" placeholder="active" />
+
+            <button (click)="updateCustomerProfile()" [disabled]="actionLoading || !selectedCustomerId">
+                Update Profile
+            </button>
+        </div>
+    </div>
+</div>

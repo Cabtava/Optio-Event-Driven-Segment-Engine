@@ -25,12 +25,15 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.19",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/websockets": "^11.1.19",
     "@prisma/client": "^6.19.3",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^1.0.3",
     "prisma": "^6.19.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

@@ -36,10 +36,10 @@ export class SegmentEvaluatorService {
   constructor(private readonly prisma: PrismaService) {}
 
   async recomputeSegment(
-      segmentId: string,
-      triggerTypeRaw: string,
-      visited = new Set<string>(),
-    ) {
+    segmentId: string,
+    triggerTypeRaw: string,
+    visited = new Set<string>(),
+  ) {
     if (visited.has(segmentId)) {
       return {
         skipped: true,
@@ -239,7 +239,7 @@ export class SegmentEvaluatorService {
     rule: RuleGroup,
     customer: CustomerWithTransactions,
     effectiveNow: Date,
-    ): Promise<boolean> {
+  ): Promise<boolean> {
     const results: boolean[] = [];
 
     for (const condition of rule.conditions) {
@@ -301,7 +301,7 @@ export class SegmentEvaluatorService {
     return !!membership;
   }
 
-    private async getEffectiveNow(): Promise<Date> {
+  private async getEffectiveNow(): Promise<Date> {
     const state = await this.prisma.simulationState.findUnique({
       where: { id: 'global' },
     });
@@ -313,7 +313,7 @@ export class SegmentEvaluatorService {
     condition: FieldRuleCondition,
     customer: CustomerWithTransactions,
     now: Date,
-    ): boolean {
+  ): boolean {
     switch (condition.field) {
       case 'transactions_count_30d': {
         const count = customer.transactions.filter((tx) =>
@@ -369,6 +369,12 @@ export class SegmentEvaluatorService {
   private diffInDays(date: Date, now: Date): number {
     const diffMs = now.getTime() - date.getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  async getSegmentById(segmentId: string) {
+    return this.prisma.segment.findUnique({
+      where: { id: segmentId },
+    });
   }
 
   private compare(left: any, operator: string, right: any): boolean {

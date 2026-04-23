@@ -8,6 +8,7 @@ import { SimulationModule } from './modules/simulation/simulation.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { RedisModule } from './redis/redis.module';
 import { ChangeAggregationModule } from './modules/change-aggregation/change-aggregation.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ChangeAggregationModule } from './modules/change-aggregation/change-agg
     MessagingModule,
     RedisModule,
     ChangeAggregationModule,
+    WebsocketModule,
   ],
 })
 export class AppModule {}

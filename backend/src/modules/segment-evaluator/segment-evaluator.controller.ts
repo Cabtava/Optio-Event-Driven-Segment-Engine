@@ -1,4 +1,10 @@
-import { Controller, Param, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { SegmentEvaluatorService } from './segment-evaluator.service';
 import { MessagingService } from '../../messaging/messaging.service';
 
@@ -25,6 +31,13 @@ export class SegmentEvaluatorController {
     @Param('id') segmentId: string,
     @Query('triggerType') triggerType?: string,
   ) {
+    const existingSegment =
+      await this.segmentEvaluatorService.getSegmentById(segmentId);
+
+    if (!existingSegment) {
+      throw new NotFoundException(`Segment with id ${segmentId} not found`);
+    }
+
     await this.messagingService.publishSegmentRecompute({
       segmentId,
       triggerType: triggerType ?? 'MANUAL_REFRESH',
@@ -33,6 +46,7 @@ export class SegmentEvaluatorController {
     return {
       queued: true,
       segmentId,
+      segmentName: existingSegment.name,
       triggerType: triggerType ?? 'MANUAL_REFRESH',
       queue: 'segment.recompute',
     };
